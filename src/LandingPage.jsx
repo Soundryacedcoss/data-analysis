@@ -6,48 +6,38 @@ export const LandingPage = () => {
   const [ci, setCi] = useState([]);
   const [bill, setBill] = useState(0);
   const [selectedId, setSelectedId] = useState("");
-  const [productName, setProductName] = useState([]);
-  const [selectedDes, setSelectedDes] = useState("");
-  const [totalQuantity, setTotalQuantity] = useState(0);
-  const [totalOrder, setTotalOrder] = useState(0);
+  const [invoiceDetail, setInvoiceDetail] = useState([]);
+  const [click, setClick] = useState(false);
   useEffect(() => {
     let temp = data.data.map((val) => val.CustomerID);
     temp = [...new Set(temp)];
-    setCi(temp);
-    let description = data.data.map((val) => val.Description);
-    description = [...new Set(description)];
-    setProductName(description);
-  }, [data]);
+    let unique = temp.map((val) => parseInt(val));
+    let uniqueId = unique.filter((item) => JSON.stringify(item).length === 5);
+    setCi(uniqueId);
+  }, [data.data]);
   const SelectHandler = (e) => {
     setSelectedId(e.target.value);
   };
-  const BillHandler = () => {
+  const BillHandler = (e) => {
+    setClick(true);
     let price = 0;
+    let Arr = [];
     for (let i = 0; i < data.data.length; i++) {
-      if (selectedId === data.data[i].CustomerID) {
+      if (`${selectedId}.0` === data.data[i].CustomerID) {
+        console.log("hs");
         price += data.data[i].Quantity * data.data[i].UnitPrice;
+        var obj = {
+          price: data.data[i].UnitPrice,
+          quantity: data.data[i].Quantity,
+          name: data.data[i].Description,
+        };
+        Arr.push(obj);
+        setInvoiceDetail(Arr);
         setBill(price);
       }
     }
   };
-  const SelectProductHandler = (e) => {
-    setSelectedDes(e.target.value);
-  };
-  const DetailHandler = () => {
-    let Quantity = 0;
-    let counter = 0;
-
-    for (let i = 0; i < data.data.length; i++) {
-      if (selectedDes === data.data[i].Description) {
-        let temp = data.data[i].Description;
-        Quantity += parseInt(data.data[i].Quantity);
-        setTotalQuantity(Quantity);
-        counter = counter + 1;
-        setTotalOrder(counter);
-      }
-    }
-
-  };
+  console.log(invoiceDetail);
   return (
     <div>
       <div className="InvoiceContainer">
@@ -60,34 +50,45 @@ export const LandingPage = () => {
             </>
           ))}
         </select>
-        <button className="btn btn-info mt-5 w-25" onClick={BillHandler}>
-          Generate Bill
-        </button>
-        <div className="Output mt-5">Bill : {bill}</div>
-      </div>
-      <div className="InvoiceContainer">
-        <h2>Order Item details</h2>
-        <select
-          name=""
-          id=""
-          class="form-select"
-          onChange={SelectProductHandler}
-        >
-          <option value="">Chooose</option>
-          {productName.map((val) => (
-            <>
-              <option value={val}>{val}</option>
-            </>
-          ))}
-        </select>
-        <button className="btn btn-info mt-5 w-25" onClick={DetailHandler}>
-          Show Details
-        </button>
-        <div className="Output mt-5">
-          total order is: {totalOrder}
-          <br />
-          total quantity is:{totalQuantity}
-        </div>
+        {selectedId === "" ? (
+          " "
+        ) : (
+          <>
+            <button
+              className="btn btn-info mt-5 w-25"
+              value={click}
+              onClick={BillHandler}
+            >
+              Generate Bill
+            </button>
+            {click === true ? (
+              <>
+                <table
+                  className="table table-info table-hover table-striped mt-4"
+                  style={{ textAlign: "left" }}
+                >
+                  <thead className=" table table-primary">
+                    <th>Name</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                  </thead>
+                  <tbody>
+                    {invoiceDetail.splice(0, 10).map((val) => (
+                      <tr>
+                        <td>{val.name}</td>
+                        <td>{val.quantity}</td>
+                        <td>{val.price}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <div className="Output mt-5">Bill : {bill}</div>
+              </>
+            ) : (
+              ""
+            )}
+          </>
+        )}
       </div>
     </div>
   );
